@@ -1,3 +1,8 @@
+class OvenOffError < StandardError
+end
+class OvenEmptyError < StandardError
+end
+
 class SmallOven
 
   attr_accessor :contents
@@ -12,26 +17,39 @@ class SmallOven
   end
 
   def bake
-# if the oven hasn't been turned on, warn the user.
+# Raise an error if we attempt to bake while the oven is off
     unless @state == "on"
-      raise "You need to turn the oven on first!"
+      raise OvenOffError, "You need to turn the oven on first!"
     end
-# if nothing is in the oven, warn the user.
+# Raise an error if we attempt to back while the oven is empty
     if @contents == nil
-      raise "There's nothing in the oven!"
+      raise OvenEmptyError, "There's nothing in the oven!"
     end
     "golden-brown #{contents}"
   end
 
 end
 
-dinner = ['turkey', 'casserole', 'pie']
+dinner = ['turkey', nil, 'pie']
 oven = SmallOven.new
 oven.turn_on
 # process each menu item
 dinner.each do |item|
+  begin
 # place the item in the oven
-  oven.contents = item
-# Bake and serve the item.
-  puts "Serving #{oven.bake}."
+    oven.contents = item
+    puts "Serving #{oven.bake}."
+# store the exception in a variable
+# rescue only OvenEmptyError
+  rescue OvenEmptyError => error
+# print out whatever message the exception contains
+    puts "Error: #{error.message}"
+
+# rescue only OvenOffError
+  rescue OvenOffError => error
+# the oven must be off, so turn it on.
+    oven.turn_on
+    retry
+
+  end
 end
